@@ -105,7 +105,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         response = claude.messages.create(
             model="claude-opus-4-6",
-            max_tokens=1024,
+            max_tokens=4096,
             messages=[{"role": "user", "content": PROMPT + transcript}],
         )
         raw = response.content[0].text.strip()
