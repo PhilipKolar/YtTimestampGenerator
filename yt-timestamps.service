@@ -1,0 +1,15 @@
+[Unit]
+Description=YouTube Timestamps Telegram Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=phil
+WorkingDirectory=/home/phil/repos/yt-timestamps
+ExecStart=/home/phil/repos/yt-timestamps/venv/bin/python3 bot.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

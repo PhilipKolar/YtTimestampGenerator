@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch yt-timestamps bot files for changes
+
+[Path]
+PathModified=/home/phil/repos/yt-timestamps/.env
+PathModified=/home/phil/repos/yt-timestamps/bot.py
+
+[Install]
+WantedBy=multi-user.target

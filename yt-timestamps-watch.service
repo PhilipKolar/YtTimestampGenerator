@@ -1,0 +1,6 @@
+[Unit]
+Description=Restart yt-timestamps bot when files change
+
+[Service]
+Type=oneshot
+ExecStart=/bin/systemctl restart yt-timestamps
