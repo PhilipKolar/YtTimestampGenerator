@@ -61,6 +61,7 @@ Rules:
 - aim for 8-15 chapters for a typical podcast, fewer for short videos
 - focus on clear topic shifts, not every minor subtopic
 - first chapter should always start at 0:00
+- do not create a chapter for sponsor segments, ads, or promotional reads — skip over them
 
 TRANSCRIPT:
 """
