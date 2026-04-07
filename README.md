@@ -28,7 +28,7 @@ git clone https://github.com/YOUR_USERNAME/yt-timestamps.git
 cd yt-timestamps
 python3 -m venv venv
 source venv/bin/activate
-pip install python-telegram-bot anthropic youtube-transcript-api python-dotenv
+pip install -r requirements.txt
 ```
 
 ### 2. Create a Telegram bot
