@@ -2,8 +2,11 @@ import os
 import re
 import json
 import logging
+import tempfile
 
 import anthropic
+import yt_dlp
+import whisper
 from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, TranscriptsDisabled
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, ContextTypes, filters
@@ -39,6 +42,29 @@ def build_transcript(video_id):
     api = YouTubeTranscriptApi()
     entries = api.fetch(video_id)
     lines = [f"[{format_timestamp(e.start)}] {e.text}" for e in entries]
+    text = "\n".join(lines)
+    if len(text) > MAX_TRANSCRIPT_CHARS:
+        text = text[:MAX_TRANSCRIPT_CHARS] + "\n[transcript truncated]"
+    return text
+
+
+def build_transcript_whisper(video_id):
+    url = f"https://www.youtube.com/watch?v={video_id}"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        audio_path = os.path.join(tmpdir, "audio.m4a")
+        ydl_opts = {
+            "format": "bestaudio[ext=m4a]/bestaudio/best",
+            "outtmpl": audio_path,
+            "quiet": True,
+            "no_warnings": True,
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+
+        model = whisper.load_model("base")
+        result = model.transcribe(audio_path)
+
+    lines = [f"[{format_timestamp(seg['start'])}] {seg['text'].strip()}" for seg in result["segments"]]
     text = "\n".join(lines)
     if len(text) > MAX_TRANSCRIPT_CHARS:
         text = text[:MAX_TRANSCRIPT_CHARS] + "\n[transcript truncated]"
@@ -90,12 +116,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         transcript = build_transcript(video_id)
-    except TranscriptsDisabled:
-        await update.message.reply_text("Transcripts are disabled for this video.")
-        return
-    except NoTranscriptFound:
-        await update.message.reply_text("No transcript found for this video.")
-        return
+    except (TranscriptsDisabled, NoTranscriptFound):
+        await update.message.reply_text(
+            "Transcripts unavailable, falling back to Whisper (this may take a few minutes)..."
+        )
+        try:
+            transcript = build_transcript_whisper(video_id)
+        except Exception as e:
+            log.exception("Whisper fallback failed")
+            await update.message.reply_text(f"Whisper fallback failed: {e}")
+            return
     except Exception as e:
         log.exception("Failed to fetch transcript")
         await update.message.reply_text(f"Failed to fetch transcript: {e}")
