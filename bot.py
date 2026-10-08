@@ -23,6 +23,9 @@ ALLOWED_USER_ID = int(os.environ["ALLOWED_USER_ID"])
 
 claude = anthropic.AsyncAnthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
+MODEL = "claude-sonnet-5-5"  # adaptive thinking is on by default for this model
+EFFORT = "high"  # low | medium | high | xhigh | max
+
 # ~100k tokens — fits any normal podcast, leaves room for prompt + response
 MAX_TRANSCRIPT_CHARS = 400_000
 
@@ -239,11 +242,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             truncation_note=TRUNCATION_NOTE if transcript.endswith("[transcript truncated]") else "",
         )
         response = await claude.messages.create(
-            model="claude-opus-4-6",
-            max_tokens=4096,
+            model=MODEL,
+            max_tokens=16000,  # thinking tokens count against this, plus the JSON itself
+            output_config={"effort": EFFORT},
             messages=[{"role": "user", "content": prompt}],
         )
-        raw = response.content[0].text.strip()
+        raw = next(b.text for b in response.content if b.type == "text").strip()
         if raw.startswith("```"):
             raw = raw.split("\n", 1)[1].rsplit("```", 1)[0].strip()
         data = json.loads(raw)
