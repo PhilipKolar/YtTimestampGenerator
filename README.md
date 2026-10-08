@@ -121,7 +121,7 @@ sudo systemctl disable yt-timestamps
 
 ## Limitations
 
-- Only works for videos that have captions (auto-generated or manual)
+- Videos without captions fall back to Whisper (slow for long videos); streams that are still live or still processing are detected and you are asked to retry later
 - Very long videos (3+ hours) will have their transcript trimmed to fit the model's context window
 - Chapter quality depends on how well-structured the video's speech is
 
